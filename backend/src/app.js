@@ -7,8 +7,29 @@ const orderRoutes = require("./routes/orderRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 
 const app = express();
+const allowedOrigins = config.allowedOrigin
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+  .filter((origin) => origin !== "*");
 
-app.use(cors({ origin: config.allowedOrigin }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin not allowed by CORS"));
+    },
+  })
+);
 app.use(express.json());
 
 app.get("/health", (req, res) => {
